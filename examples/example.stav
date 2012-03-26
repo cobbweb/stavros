@@ -1,0 +1,57 @@
+var name = "Stavros!"
+sayHello = fun (var name: String) {
+    console.log("Hello ${name}")
+}
+
+sayHello(name)
+
+name = "Hans Brix"
+sayHello(name)
+
+sayHello = "Hello World!" // error, immutable... use var keyword
+
+class Hello(var name?) {
+
+    fun talk()
+    {
+        console.log("Hello ${@name}")
+    }
+
+    fun whosTalking()
+
+}
+
+class Stavros extends Hello {
+    // class body is constructor
+    @name = "Starvos"
+
+
+    fun haveFun(func: Function)
+    {
+        val result = func()
+        console.log("${@name} says: result")
+    }
+}
+
+hello = new Hello("World!")
+hello.talk()
+
+stavros = new Stavros()
+stavros.talk()
+stavros.haveFun(fun() {
+    // implicit return
+    "Meow"
+})
+
+// ------- MyView.stav
+
+namespace MyApp.View
+
+import Backbone._
+
+class MyView extend Backbone.View {
+
+    @$el = "#sidebar"
+    @
+
+}
