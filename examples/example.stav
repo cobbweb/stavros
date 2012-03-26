@@ -52,6 +52,5 @@ import Backbone._
 class MyView extend Backbone.View {
 
     @$el = "#sidebar"
-    @
 
 }
