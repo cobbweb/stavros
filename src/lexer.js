@@ -70,14 +70,16 @@ var LITERALS = {
     SYNTAX: [
         '(', ')',
         '[', ']',
-        '{', '}',
         '!',
         '.',
         ',',
         ':',
         '?',
         "@"
-    ]
+    ],
+
+    INDENT: [ '{' ],
+    OUTDENT: [ '}' ]
 
 };
 
@@ -189,7 +191,6 @@ Lexer.prototype = {
     },
 
     comment: function(chunk) {
-        console.log(chunk.substring(0, 4));
         if (chunk.search(COMMENT) === 0) {
             var result = chunk.match(COMMENT)[0];
 
