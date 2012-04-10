@@ -1,0 +1,3 @@
+var jack = 16
+print jack * 2
+print jack > 14

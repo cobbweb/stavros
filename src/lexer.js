@@ -4,37 +4,42 @@
 
 var _ = require('underscore');
 
-var NUMBER     = /^-?[0-9]+(\.[0-9]+)?/,
-    COMMENT    = /^((\/\/|#).*)/,
+/*
+[^\n\S]+        /* ignore whitespace * /
+[0-9]+          { return 'INT' }
+(\n|\;)         { return 'TERMINATOR' }
+"-"             { return '-' }
+"+"             { return '+' }
+'('             { return '(' }
+')'             { return ')' }
+'='             { return '=' }
+'print'         { return 'print' }
+'var'           { return 'var' }
+[a-zA-Z0-9_]+   { return 'IDENTIFIER' }
+<<EOF>>         { return 'EOF' }
+*/
+
+var INT        = /^[0-9]+/,
     WHITESPACE = /^[^\n\S]+/,
     KEYWORD    = /^([a-z]+)/ig,
     IDENTIFIER = /^((\$|[a-z])([a-z0-9_$])*)/ig,
-    TERMINATOR = /^(\n|;)/,
-    STRING     = /^(\'|\")(\\.|[^\"])*(\'|\")/;
+    TERMINATOR = /^(\n|;)/;
 
 var KEYWORDS = [
     // values
-    "true",
-    "false",
-    "null",
+    "print",
+    "var"
+];
 
-    // language
-    "import",
-    "namespace",
-    "class",
-    "extends",
-    "fun",
-    "var",
-    "val",
-
-    // control
-    "if",
-    "else",
-    "for",
-    "while",
-    "do",
-    "switch",
-    "case"
+var SYNTAX = [
+    '(', ')',
+    '[', ']',
+    '!',
+    '.',
+    ',',
+    ':',
+    '?',
+    "@"
 ];
 
 var LITERALS = {
@@ -50,36 +55,30 @@ var LITERALS = {
         ">"
     ],
 
-    ASSIGN: [
-        "+=",
-        "-=",
-        "*=",
-        "/=",
-        "="
-    ],
+    // BOOLOP: [
+    //     '||',
+    //     '&&'
+    // ],
+
+     ASSIGN: [
+    //     "+=",
+    //     "-=",
+    //     "*=",
+    //     "/=",
+         "="
+     ],
 
     MATH: [
-        "+",
-        "-",
         "*",
         "/",
         "^",
-        "%"
-    ],
+        "%",
+        "+",
+        "-"
+    ]
 
-    SYNTAX: [
-        '(', ')',
-        '[', ']',
-        '!',
-        '.',
-        ',',
-        ':',
-        '?',
-        "@"
-    ],
-
-    INDENT: [ '{' ],
-    OUTDENT: [ '}' ]
+    // INDENT: [ '{' ],
+    // DEDENT: [ '}' ]
 
 };
 
@@ -87,7 +86,7 @@ var Lexer = function(){};
 
 Lexer.prototype = {
 
-    tokenize: function(code) {
+    tokenise: function(code) {
         this.lineNo = 1;
         var chunk, tokens = [], level = 0, levels = 0, i = 0, token;
         code = code.replace(/(\n|\r)+$/, '');
@@ -104,15 +103,6 @@ Lexer.prototype = {
 
             // Test for keyword
             token = this.keyword(chunk);
-            if (token.length === 2) {
-                i += token[1].length;
-                token[2] = this.lineNo;
-                tokens.push(token);
-                continue;
-            }
-
-            // Test for comment
-            token = this.comment(chunk);
             if (token.length === 2) {
                 i += token[1].length;
                 token[2] = this.lineNo;
@@ -143,6 +133,15 @@ Lexer.prototype = {
                 continue;
             }
 
+            // Test for syntax
+            token = this.syntax(chunk);
+            if (token.length === 2) {
+                i += token[1].length;
+                token[2] = this.lineNo;
+                tokens.push(token);
+                continue;
+            }
+
             // Test for literal
             token = this.literals(chunk);
             if (token.length === 2) {
@@ -152,8 +151,8 @@ Lexer.prototype = {
                 continue;
             }
 
-            // Test for string
-            token = this.string(chunk);
+            // Test for integers
+            token = this.int(chunk);
             if (token.length === 2) {
                 i += token[1].length;
                 token[2] = this.lineNo;
@@ -161,20 +160,25 @@ Lexer.prototype = {
                 continue;
             }
 
-            // Test for integers/floats
-            token = this.number(chunk);
-            if (token.length === 2) {
-                i += token[1].length;
-                token[2] = this.lineNo;
-                tokens.push(token);
-                continue;
-            }
-
-            console.log("Could not match chunk starting with " + chunk[0], "...skipping");
+            console.log("Could not match chunk starting with " + chunk[0] + "...skipping");
             i += 1;
         }
 
         return tokens;
+    },
+
+    syntax: function(chunk)
+    {
+        var token = [];
+
+        _.each(SYNTAX, function(syntax) {
+            if (chunk.indexOf(syntax) === 0) {
+                token = [syntax, syntax];
+                return;
+            }
+        }, this);
+
+        return token;
     },
 
     keyword: function(chunk) {
@@ -185,16 +189,6 @@ Lexer.prototype = {
             if (index !== -1) {
                 return [result.toUpperCase(), result];
             }
-        }
-
-        return [];
-    },
-
-    comment: function(chunk) {
-        if (chunk.search(COMMENT) === 0) {
-            var result = chunk.match(COMMENT)[0];
-
-            return ["COMMENT", result];
         }
 
         return [];
@@ -220,21 +214,11 @@ Lexer.prototype = {
         return [];
     },
 
-    number: function(chunk) {
-        if (chunk.search(NUMBER) === 0) {
-            var result = chunk.match(NUMBER)[0];
+    int: function(chunk) {
+        if (chunk.search(INT) === 0) {
+            var result = chunk.match(INT)[0];
 
-            return ["NUMBER", result];
-        }
-
-        return [];
-    },
-
-    string: function(chunk) {
-        if (chunk.search(STRING) === 0) {
-            var result = chunk.match(STRING)[0];
-
-            return ["STRING", result];
+            return ["INT", result];
         }
 
         return [];
@@ -265,7 +249,7 @@ Lexer.prototype = {
 
 exports.Lexer = Lexer;
 
-exports.tokenize = function(code) {
+exports.tokenise = function(code) {
     var lexer = new Lexer();
-    return lexer.tokenize(code);
+    return lexer.tokenise(code);
 };
