@@ -71,7 +71,7 @@ Nodes.Print.prototype = {
 
     toPhp: function(c)
     {
-        return 'console_log(' + c(this.expr) + ');';
+        return 'var_dump(' + c(this.expr) + ');';
     }
 
 };
