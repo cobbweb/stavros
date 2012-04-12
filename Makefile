@@ -9,4 +9,3 @@ deps:
 test: all
 	bin/stavros examples/calc.stav
 	node calc.js
-	php calc.php

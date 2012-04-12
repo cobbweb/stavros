@@ -12,7 +12,6 @@ if (filename == path.basename(process.argv[2])) {
 }
 
 var jsFile = filename + ".js";
-var phpFile = filename + ".php";
 
 fs.readFile(process.argv[2], 'utf8', function(err, data) {
     if (err) {
@@ -23,5 +22,4 @@ fs.readFile(process.argv[2], 'utf8', function(err, data) {
     var output = compiler.compile(data);
 
     fs.writeFileSync(jsFile, output.js);
-    fs.writeFileSync(phpFile, output.php);
 });

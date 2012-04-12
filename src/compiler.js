@@ -1,25 +1,33 @@
-var parser = require('./parser').parser,
-    fs     = require('fs'),
-    nodes  = require('./nodes'),
-    lexer  = require('./lexer'),
-    path   = require('path');
+var parser   = require('./parser').parser,
+    fs       = require('fs'),
+    nodes    = require('./nodes'),
+    lexer    = require('./lexer'),
+    rewriter = require('./rewriter'),
+    path     = require('path');
 
 parser.yy = nodes;
 
 parser.lexer = {
-    "lex": function() {
+
+    lex: function()
+    {
         var token = this.tokens[this.pos] ? this.tokens[this.pos++] : ['EOF'];
         this.yytext = token[1];
         this.yylineno = token[2];
         return token[0];
     },
-    "setInput": function(tokens) {
+
+    setInput: function(tokens)
+    {
         this.tokens = tokens;
         this.pos = 0;
     },
-    "upcomingInput": function() {
+
+    upcomingInput: function()
+    {
         return "";
     }
+
 };
 
 function compileJS(stmt) {
@@ -31,6 +39,7 @@ function compileJS(stmt) {
     }
 
     if (stmt.validate && !stmt.validate()) {
+        console.log("Couldn't validate statement", stmt);
         return false;
     }
 
@@ -40,7 +49,7 @@ function compileJS(stmt) {
 }
 
 function compilePHP(stmt) {
-    var code, error;
+    var code, error = false;
 
     if (!stmt || !stmt.toPhp) {
         console.log("Invalid statement", stmt);
@@ -54,16 +63,16 @@ function compilePHP(stmt) {
 
 exports.compile = function(code) {
     var tokens = lexer.tokenise(code);
+    tokens = rewriter.rewrite(tokens);
+    console.log(tokens);
     var ast = parser.parse(tokens);
 
     var js = [], php = ["<?php"];
     ast.forEach(function(stmt) {
         js.push(compileJS(stmt));
-        php.push(compilePHP(stmt));
     });
 
     return {
-        js: js.join("\n"),
-        php: php.join("\n")
+        js: js.join("\n")
     };
 };
