@@ -4,21 +4,6 @@
 
 var _ = require('underscore');
 
-/*
-[^\n\S]+        /* ignore whitespace * /
-[0-9]+          { return 'INT' }
-(\n|\;)         { return 'TERMINATOR' }
-"-"             { return '-' }
-"+"             { return '+' }
-'('             { return '(' }
-')'             { return ')' }
-'='             { return '=' }
-'print'         { return 'print' }
-'var'           { return 'var' }
-[a-zA-Z0-9_]+   { return 'IDENTIFIER' }
-<<EOF>>         { return 'EOF' }
-*/
-
 var INT        = /^[0-9]+/,
     WHITESPACE = /^[^\n\S]+/,
     KEYWORD    = /^([a-z]+)/ig,
@@ -28,10 +13,16 @@ var INT        = /^[0-9]+/,
 var KEYWORDS = [
     // values
     "print",
-    "var"
+    "var",
+    "val",
+
+    // control
+    "if",
+    "else"
 ];
 
 var SYNTAX = [
+    '{', '}',
     '(', ')',
     '[', ']',
     '!',
@@ -55,10 +46,10 @@ var LITERALS = {
         ">"
     ],
 
-    // BOOLOP: [
-    //     '||',
-    //     '&&'
-    // ],
+    BOOLOP: [
+        '||',
+        '&&'
+    ],
 
      ASSIGN: [
     //     "+=",
@@ -164,6 +155,8 @@ Lexer.prototype = {
             i += 1;
         }
 
+        tokens.push(['EOF', '', this.lineNo]);
+
         return tokens;
     },
 
@@ -226,10 +219,12 @@ Lexer.prototype = {
 
     literals: function(chunk) {
         var token = [];
-        _(LITERALS).each(function(lits, name) {
-            _(lits).each(function(lit) {
+
+        _(LITERALS).find(function(lits, name) {
+            return _(lits).find(function(lit) {
                 if (chunk.indexOf(lit) === 0) {
                     token = [name, lit];
+                    return true;
                 }
             });
         });
