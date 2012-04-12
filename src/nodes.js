@@ -1,6 +1,7 @@
-var _     = require('underscore'),
-    Nodes = {},
-    Variables = [];
+var _         = require('underscore'),
+    Nodes     = {},
+    Variables = [],
+    Values    = [];
 
 Nodes.Math = function() {
     this.initialise.apply(this, arguments);
@@ -126,10 +127,94 @@ Nodes.AssignVariable.prototype = {
     {
         if (Variables.indexOf(this.name) !== -1) {
             console.log("Cannot redeclare variable %s on line %d", this.name, this.lineNo);
-            return false;
+            process.exit();
+        }
+
+        if (Values.indexOf(this.name) !== -1) {
+            console.log("Cannot redeclare value %s as a variable on line %d", this.name, this.lineNo);
+            process.exit();
         }
 
         Variables.push(this.name);
+        return true;
+    }
+
+};
+
+Nodes.AssignValue = function() {
+    this.initialise.apply(this, arguments);
+};
+Nodes.AssignValue.prototype = {
+
+    initialise: function(name, expr, assignType)
+    {
+        _.bindAll(this);
+        this.name = name;
+        this.expr = expr;
+        this.assignType = assignType;
+    },
+
+    toJs: function(c)
+    {
+        return ["var", this.name, this.assignType, c(this.expr)].join(" ") + ";";
+    },
+
+    toPhp: function(c)
+    {
+        return "$" + this.name + " " + this.assignType + " " + c(this.expr) + ";";
+    },
+
+    validate: function()
+    {
+        if (Variables.indexOf(this.name) !== -1) {
+            console.log("Cannot redeclare variable %s as a value on line %d", this.name, this.lineNo);
+            process.exit();
+        }
+
+        if (Values.indexOf(this.name) !== -1) {
+            console.log("Cannot redeclare value %s on line %d", this.name, this.lineNo);
+            process.exit();
+        }
+
+        Values.push(this.name);
+        return true;
+    }
+
+};
+
+Nodes.SetVariable = function() {
+    this.initialise.apply(this, arguments);
+};
+Nodes.SetVariable.prototype = {
+
+    initialise: function(name, expr, assignType)
+    {
+        _.bindAll(this);
+        this.name = name;
+        this.expr = expr;
+        this.assignType = assignType;
+    },
+
+    toJs: function(c)
+    {
+        return [this.name, this.assignType, c(this.expr)].join(" ") + ";";
+    },
+
+    toPhp: function(c)
+    {
+        return "$" + this.name + " " + this.assignType + " " + c(this.expr) + ";";
+    },
+
+    validate: function()
+    {
+        if (Values.indexOf(this.name) !== -1) {
+            console.log("Cannot change value %s on line %d", this.name, this.lineNo);
+            return false;
+        } else if (Variables.indexOf(this.name) === -1) {
+            console.log("Cannot set undefined variable %s on line %d", this.name, this.lineNo);
+            return false;
+        }
+
         return true;
     }
 
@@ -154,6 +239,15 @@ Nodes.CallVariable.prototype = {
     toPhp: function(c)
     {
         return "$" + this.name;
+    },
+
+    validate: function(c)
+    {
+        if (Variables.indexOf(this.name) === -1 && Values.indexOf(this.name) === -1) {
+            console.log("Call to undefined variable or value %s on line %d", this.name, this.lineNo);
+            return false;
+        }
+        return true;
     }
 
 };
@@ -174,6 +268,119 @@ Nodes.Comparison.prototype = {
     toJs: function(c)
     {
         return [c(this.left), this.comparator, c(this.right)].join(" ");
+    },
+
+    toPhp: function(c)
+    {
+        return this.toJs(c);
+    }
+
+};
+
+Nodes.IfBlock = function() {
+    this.initialise.apply(this, arguments);
+    this.type = "IfBlock";
+};
+Nodes.IfBlock.prototype = {
+
+    initialise: function(evaluation, trueBlock)
+    {
+        _.bindAll(this);
+        this.evaluation = evaluation;
+        this.trueBlock = trueBlock;
+    },
+
+    toJs: function(c)
+    {
+        return "if (" + c(this.evaluation) + ") {\n" + c(this.trueBlock) + "\n}";
+    },
+
+    toPhp: function(c)
+    {
+        return this.toJs(c);
+    }
+
+};
+
+Nodes.IfElseBlock = function() {
+    this.initialise.apply(this, arguments);
+    this.type = "IfElseBlock";
+};
+Nodes.IfElseBlock.prototype = {
+
+    initialise: function(evaluation, trueBlock, falseBlock)
+    {
+        _.bindAll(this);
+        this.evaluation = evaluation;
+        this.trueBlock  = trueBlock;
+        this.falseBlock = falseBlock;
+    },
+
+    toJs: function(c)
+    {
+        return "if (" + c(this.evaluation) + ") {\n" + c(this.trueBlock) + "\n} else {\n" + c(this.falseBlock) + "\n}";
+    },
+
+    toPhp: function(c)
+    {
+        return this.toJs(c);
+    }
+
+};
+
+Nodes.IfElseIfBlock = function() {
+    this.initialise.apply(this, arguments);
+    this.type = "IfElseIfBlock";
+};
+Nodes.IfElseIfBlock.prototype = {
+
+    initialise: function(evaluation, trueBlock, elseIfs, falseBlock)
+    {
+        _.bindAll(this);
+        this.evaluation = evaluation;
+        this.trueBlock  = trueBlock;
+        this.elseIfs    = elseIfs;
+        this.falseBlock = falseBlock;
+    },
+
+    toJs: function(c)
+    {
+        var code = ["if (" + c(this.evaluation) + ") {\n" + c(this.trueBlock) + "\n} "];
+
+        _(this.elseIfs).each(function(elseIfBlock) {
+            code.push(c(elseIfBlock));
+        });
+
+        if (this.falseBlock) {
+            code.push(" else {\n" + c(this.falseBlock) + "\n}");
+        }
+
+        return code.join("");
+    },
+
+    toPhp: function(c)
+    {
+        return this.toJs(c);
+    }
+
+};
+
+Nodes.ElseIfBlock = function() {
+    this.initialise.apply(this, arguments);
+    this.type = "ElseIfBlock";
+};
+Nodes.ElseIfBlock.prototype = {
+
+    initialise: function(evaluation, trueBlock)
+    {
+        _.bindAll(this);
+        this.evaluation = evaluation;
+        this.trueBlock  = trueBlock;
+    },
+
+    toJs: function(c)
+    {
+        return "else if (" + c(this.evaluation) + ") {\n" + c(this.trueBlock) + "\n}";
     },
 
     toPhp: function(c)

@@ -64,7 +64,6 @@ function compilePHP(stmt) {
 exports.compile = function(code) {
     var tokens = lexer.tokenise(code);
     tokens = rewriter.rewrite(tokens);
-    console.log(tokens);
     var ast = parser.parse(tokens);
 
     var js = [], php = ["<?php"];

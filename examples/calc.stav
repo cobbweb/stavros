@@ -1,3 +1,7 @@
-var jack = 16
-print jack * 2
-print jack > 14
+var hiCam = 11
+
+if (hiCam < 3) {
+    print 1
+} else if (hiCam < 10) {
+    print 2
+}
