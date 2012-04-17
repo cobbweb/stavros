@@ -1,9 +1,11 @@
-var parser   = require('./parser').parser,
-    fs       = require('fs'),
-    nodes    = require('./nodes'),
-    lexer    = require('./lexer'),
-    rewriter = require('./rewriter'),
-    path     = require('path');
+var parser       = require('./parser').parser,
+    fs           = require('fs'),
+    nodes        = require('./nodes'),
+    lexer        = require('./lexer'),
+    rewriter     = require('./rewriter'),
+    path         = require('path'),
+    astValidator = require('./ast-validator'),
+    jsCompiler   = require('./js-compiler');
 
 parser.yy = nodes;
 
@@ -30,46 +32,17 @@ parser.lexer = {
 
 };
 
-function compileJS(stmt) {
-    var code, error;
-
-    if (!stmt || !stmt.toJs) {
-        console.log("Invalid statement", stmt);
-        return false;
-    }
-
-    if (stmt.validate && !stmt.validate()) {
-        console.log("Couldn't validate statement", stmt);
-        return false;
-    }
-
-    code = stmt.toJs(compileJS);
-
-    return code;
-}
-
-function compilePHP(stmt) {
-    var code, error = false;
-
-    if (!stmt || !stmt.toPhp) {
-        console.log("Invalid statement", stmt);
-        return false;
-    }
-
-    code = stmt.toPhp(compilePHP);
-
-    return code;
-}
-
 exports.compile = function(code) {
     var tokens = lexer.tokenise(code);
     tokens = rewriter.rewrite(tokens);
     var ast = parser.parse(tokens);
+    var valid = astValidator.validate(ast);
 
-    var js = [], php = ["<?php"];
-    ast.forEach(function(stmt) {
-        js.push(compileJS(stmt));
-    });
+    if (!valid) {
+        console.log("Didn't compile due to code error");
+    }
+
+    var js = jsCompiler.compile(ast);
 
     return {
         js: js.join("\n")

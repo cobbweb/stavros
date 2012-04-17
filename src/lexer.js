@@ -5,6 +5,7 @@
 var _ = require('underscore');
 
 var INT        = /^[0-9]+/,
+    STRING     = /^(\'|\")(\\.|[^\"])*(\'|\")/,
     WHITESPACE = /^[^\n\S]+/,
     KEYWORD    = /^([a-z]+)/ig,
     IDENTIFIER = /^((\$|[a-z])([a-z0-9_$])*)/ig,
@@ -18,7 +19,11 @@ var KEYWORDS = [
 
     // control
     "if",
-    "else"
+    "else",
+
+    // language
+    "fun",
+    "class"
 ];
 
 var SYNTAX = [
@@ -142,6 +147,15 @@ Lexer.prototype = {
                 continue;
             }
 
+            // Test for string
+            token = this.string(chunk);
+            if (token.length === 2) {
+                i += token[1].length;
+                token[2] = this.lineNo;
+                tokens.push(token);
+                continue;
+            }
+
             // Test for integers
             token = this.int(chunk);
             if (token.length === 2) {
@@ -230,6 +244,16 @@ Lexer.prototype = {
         });
 
         return token;
+    },
+
+    string: function(chunk) {
+        if (chunk.search(STRING) === 0) {
+            var result = chunk.match(STRING)[0];
+
+            return ["STRING", result];
+        }
+
+        return [];
     },
 
     terminator: function(chunk) {

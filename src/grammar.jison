@@ -24,6 +24,8 @@ body
 line
     : PRINT expr
         { $$ = new yy.Print($2); }
+    | class
+        { $$ = $1; }
     | assignment
         { $$ = $1; }
     | ifblocks
@@ -36,11 +38,11 @@ ifblocks
     : IF '(' expr ')' block
         { $$ = new yy.IfBlock($3, $5); }
     | IF '(' expr ')' block ELSE block
-        { $$ = new yy.IfElseBlock($3, $5, $7); }
+        { $$ = new yy.IfBlock($3, $5, $7); }
     | IF '(' expr ')' block elseifs
-        { $$ = new yy.IfElseIfBlock($3, $5, $6) }
+        { $$ = new yy.IfBlock($3, $5, false, $6) }
     | IF '(' expr ')' block elseifs ELSE block
-        { $$ = new yy.IfElseIfBlock($3, $5, $6, $8) }
+        { $$ = new yy.IfBlock($3, $5, $8, $6) }
     ;
 
 elseifs
@@ -51,8 +53,10 @@ elseifs
     ;
 
 block
-    : '{' body '}'
-        { $$ = $2[0] }
+    : '{' '}'
+        { $$ = []; }
+    | '{' body '}'
+        { $$ = $2; }
     ;
 
 assignment
@@ -73,13 +77,61 @@ expr
         { $$ = new yy.Comparison($1, $3, $2); }
     | expr BOOLOP expr
         { $$ = new yy.Comparison($1, $3, $2); }
+    | closure
+        { $$ = $1; }
+    | variablecall
+        { $$ = $1; }
     | type
         { $$ = $1; }
     ;
 
+parameters
+    : parameter
+        { $$ = [$1] }
+    | parameters ',' parameter
+        { $$ = $1; $1.push($3) }
+    ;
+
+parameter
+    : IDENTIFIER ':' IDENTIFIER
+        { $$ = new yy.ValueParameter($1, $3); }
+    | VAL IDENTIFIER ':' IDENTIFIER
+        { $$ = new yy.ValueParameter($2, $4); }
+    | VAR IDENTIFIER ':' IDENTIFIER
+        { $$ = new yy.VariableParameter($2, $4); }
+    ;
+
+arguments
+    : expr
+        { $$ = [$1]; }
+    | arguments ',' expr
+        { $$ = $1; $1.push($3); }
+    ;
+
+closure
+    : FUN '('')' block
+        { $$ = new yy.Closure($4); }
+    | FUN '(' parameters ')' block
+        { $$ = new yy.Closure($5, $3); }
+    ;
+
+class
+    : CLASS IDENTIFIER block
+        { $$ = new yy.Class($2, $3); $$.lineNo = yylineno; }
+    ;
+
+variablecall
+    : IDENTIFIER '('')'
+        { $$ = new yy.CallFunction($1); $$.lineNo = yylineno; }
+    | IDENTIFIER '(' arguments ')'
+        { $$ = new yy.CallFunction($1, $3); $$.lineNo = yylineno; }
+    | IDENTIFIER
+        { $$ = new yy.CallVariable($1); $$.lineNo = yylineno; }
+    ;
+
 type
-    : IDENTIFIER
-        { $$ = new yy.CallVariable($1); }
-    | INT
+    : INT
         { $$ = new yy.Integer($1); }
+    | STRING
+        { $$ = new yy.String($1); }
     ;
