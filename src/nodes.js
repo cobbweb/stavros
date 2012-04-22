@@ -102,6 +102,14 @@ var Nodes = {
         this._type = "Class";
         this.name = name;
         this.body = body;
+    },
+
+    Method: function(visibility, name, body, parameters) {
+        this._type = "Method";
+        this.visibility = visibility;
+        this.name = name;
+        this.body = body;
+        this.parameters = parameters;
     }
 
 };

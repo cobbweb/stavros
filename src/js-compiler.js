@@ -1,7 +1,7 @@
 var _    = require('underscore'),
     util = require('util');
 
-var f = util.format;
+var f = util.format, currentClass;
 
 var JsCompiler = function() {
     _.bindAll(this);
@@ -109,11 +109,31 @@ JsCompiler.prototype.compileNode = function(node) {
         case "Class":
             var body = [];
 
+            currentClass = node.name;
+
             _.each(node.body, function(bodyNode) {
                 body.push(c(bodyNode));
             });
 
-            code = f("function %s() {\n%s\n}", node.name, body.join("\n"));
+            currentClass = "";
+
+            code = f("function %s() {\n_.bindAll(this);\nthis.initialise && this.initialise.apply(this, arguments);\n}\n%s", node.name, body.join("\n"));
+        break;
+
+        case "Method":
+            var params = [], body = [];
+
+            if (node.parameters) {
+                _.each(node.parameters, function(parameter) {
+                    params.push(c(parameter));
+                }, this);
+            }
+
+            _.each(node.body, function(bodyNode) {
+                body.push(c(bodyNode));
+            });
+
+            code = f("%s.prototype.%s = function(%s) {\n%s\n};", currentClass, node.name, params.join("\n"), body.join("\n"));
         break;
     }
 

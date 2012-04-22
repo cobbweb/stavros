@@ -24,7 +24,7 @@ body
 line
     : PRINT expr
         { $$ = new yy.Print($2); }
-    | class
+    | classdef
         { $$ = $1; }
     | assignment
         { $$ = $1; }
@@ -115,9 +115,30 @@ closure
         { $$ = new yy.Closure($5, $3); }
     ;
 
-class
-    : CLASS IDENTIFIER block
-        { $$ = new yy.Class($2, $3); $$.lineNo = yylineno; }
+classdef
+    : CLASS IDENTIFIER '{' classbody '}'
+        { $$ = new yy.Class($2, $4); $$.lineNo = yylineno; }
+    ;
+
+classbody
+    : classline
+        { $$ = [$1]; }
+    | classbody TERMINATOR classline
+        { $$ = $1; $1.push($3); }
+    | classbody TERMINATOR
+        { $$ = $1; }
+    ;
+
+classline
+    : method
+        { $$ = $1; }
+    ;
+
+method
+    : PUBLIC FUN IDENTIFIER '(' ')' block
+        { $$ = new yy.Method($1, $3, $6); }
+    | PUBLIC FUN IDENTIFIER '(' parameters ')' block
+        { $$ = new yy.Method($1, $3, $7, $5); }
     ;
 
 variablecall

@@ -1,3 +1,5 @@
 class Test {
-    val test = "Hello"
+    public fun talk(val name: String) {
+        print name
+    }
 }

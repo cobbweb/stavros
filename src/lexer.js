@@ -23,7 +23,8 @@ var KEYWORDS = [
 
     // language
     "fun",
-    "class"
+    "class",
+    "public"
 ];
 
 var SYNTAX = [
@@ -83,7 +84,7 @@ var Lexer = function(){};
 Lexer.prototype = {
 
     tokenise: function(code) {
-        this.lineNo = 1;
+        this.lineNo = 0;
         var chunk, tokens = [], level = 0, levels = 0, i = 0, token;
         code = code.replace(/(\n|\r)+$/, '');
 
