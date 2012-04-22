@@ -1,6 +1,6 @@
 # Stavros
 
-I don't like JavaScript, I don't like PHP, I don't CoffeeScript. I'm trying to roll them all into one language that compiles to JavaScript and PHP. I'm also throwing in a few features from Scala, but it should still be easy for anyone coming from a PHP background. The language is writtin on top of JavaScript and the parser generated using [Jison](http://zaach.github.com/jison/), CoffeeScript and Roy use this.
+A [naive attempt at writing a language to target JavaScript](http://cobbweb.me/blog/2012/04/13/im-writing-my-own-language-to-target-javascript/). I sort of Scala-like language that combines OOP and functional programming but without straying to far from the syntax and features of JavaScript and PHP.
 
 I still haven't decided on final syntax, I need to think it out more and get some peer review. But you can see some concepts in the examples folder.
 
@@ -8,7 +8,7 @@ I still haven't decided on final syntax, I need to think it out more and get som
 
 * Get a full language compiling to JavaScript (In progress)
 * Add type inferencing and optimise errors
-* Finish PHP compilation
+* Write PHP compiler
 
 ## Install
 
@@ -25,7 +25,7 @@ That will generate a `calc.js` and `calc.php` in your `pwd` which you execute wi
 
     make test
 
-This will regenerate parser, compile `examples/calc.stav` and then execute the generate files in their respective environments.
+This will regenerate the parser, compile `examples/calc.stav` and then execute the generate files in their respective environments.
 
 ## The future
 
