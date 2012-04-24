@@ -2,9 +2,11 @@ var _ = require('underscore'),
     ScopeManager = require('./scope-manager').ScopeManager,
     util = require("util");
 
+var f = util.format;
+
 var AstValidator = function() {
     this.scopeManager = new ScopeManager();
-    _.bindAll(this, "validate", "validateNode");
+    _.bindAll(this, "validate", "validateNode", "inferExpressionType");
     this.error = false;
     this.closures = 1;
 };
@@ -20,6 +22,37 @@ AstValidator.prototype.validate = function(ast) {
     return true;
 };
 
+/** This function will search down and AST to find what type of node is at the bottom left */
+AstValidator.prototype.inferExpressionType = function(node) {
+    var i = this.inferExpressionType;
+    var type = {};
+
+    switch (node._type) {
+        case "BracketBlock":
+            type = i(node.expr);
+        break;
+
+        case "Math":
+        case "Comparison":
+            type = i(node.left);
+        break;
+
+        case "Closure":
+            type = node.returnType;
+        break;
+
+        case "VariableCall":
+        break;
+
+        case "Integer":
+        case "String":
+            type = node;
+        break;
+    }
+
+    return type;
+};
+
 AstValidator.prototype.validateNode = function(node) {
     switch (node._type) {
         case "AssignVariable":
@@ -27,9 +60,9 @@ AstValidator.prototype.validateNode = function(node) {
 
             if (identifier) {
                 if (identifier._type == "AssignValue" || identifier._type == "ValueParameter") {
-                    this.error = util.format("Cannot redeclare value %s as a variable on line %d", node.name, node.lineNo);
+                    this.error = f("Cannot redeclare value %s as a variable on line %d", node.name, node.lineNo);
                 } else if (identifier.type == "Variable" || identifier._type == "VariableParameter") {
-                    this.error = util.format("Cannot redeclare variable %s on line %d", node.name, node.lineNo);
+                    this.error = f("Cannot redeclare variable %s on line %d", node.name, node.lineNo);
                 }
             } else {
                 this.scopeManager.pushIdentifier(node.name, node);
@@ -39,10 +72,12 @@ AstValidator.prototype.validateNode = function(node) {
 
         case "AssignValue":
             if (this.scopeManager.hasIdentifier(node.name)) {
-                this.error = util.format("Cannot redeclare %s as a value on line %d", node.name, node.lineNo);
+                this.error = f("Cannot redeclare %s as a value on line %d", node.name, node.lineNo);
             } else {
                 this.scopeManager.pushIdentifier(node.name, node);
                 this.validateNode(node.expr);
+                node._inferredType = this.inferExpressionType(node.expr);
+                console.log(node._inferredType);
             }
         break;
 
@@ -50,15 +85,17 @@ AstValidator.prototype.validateNode = function(node) {
             var identifier = this.scopeManager.getIdentifier(node.name);
 
             if (identifier && (identifier._type == "AssignValue" || identifier._type == "ValueParameter")) {
-                this.error = util.format("Cannot change value %s on line %d", node.name, node.lineNo);
+                this.error = f("Cannot change value %s on line %d", node.name, node.lineNo);
             } else {
                 this.validateNode(node.expr);
+                node._inferredType = this.inferExpressionType(node.expr);
+                console.log(node._inferredType);
             }
         break;
 
         case "CallVariable":
             if (!this.scopeManager.hasIdentifier(node.name)) {
-                this.error = util.format("Call to undefined variable %s on line %d", node.name, node.lineNo);
+                this.error = f("Call to undefined variable %s on line %d", node.name, node.lineNo);
             }
         break;
 
@@ -77,7 +114,7 @@ AstValidator.prototype.validateNode = function(node) {
         case "ValueParameter":
         case "VariableParameter":
             if (this.scopeManager.hasIdentifier(node.name)) {
-                this.error = util.format("Cannot redefined a parameter with the same name %s on line %d", node.name, node.lineNo);
+                this.error = f("Cannot redefined a parameter with the same name %s on line %d", node.name, node.lineNo);
             } else {
                 this.scopeManager.pushIdentifier(node.name, node);
             }
@@ -87,12 +124,13 @@ AstValidator.prototype.validateNode = function(node) {
             var identifier = this.scopeManager.getIdentifier(node.name);
 
             if (!identifier) {
-                this.error = util.format("Call to undefined function %s on line %d", node.name, node.lineNo);
+                this.error = f("Call to undefined function %s on line %d", node.name, node.lineNo);
             } else if (identifier.expr._type !== "Closure") {
-                this.error = util.format("Cannot call %s as a function or closure on line %d", node.name, node.lineNo);
+                this.error = f("Cannot call %s as a function or closure on line %d", node.name, node.lineNo);
             }
         break;
 
+        case "BracketBlock":
         case "Print":
             this.validateNode(node.expr);
         break;
@@ -103,6 +141,30 @@ AstValidator.prototype.validateNode = function(node) {
             _.find(node.body, this.validateNode);
 
             this.scopeManager.exitScope();
+        break;
+
+        case "Comparison":
+            if (!this.validateNode(node.left) && !this.validateNode(node.right)) {
+                var left = this.inferExpressionType(node.left);
+                var right = this.inferExpressionType(node.right);
+
+                if (left._type !== right._type) {
+                    this.error = f("Cannot compare type %s to type %s on line %d", left._type, right._type, node.lineNo);
+                }
+            }
+        break;
+
+        case "Math":
+            if (!this.validateNode(node.left) && !this.validateNode(node.right)) {
+                var left = this.inferExpressionType(node.left);
+                var right = this.inferExpressionType(node.right);
+
+                if (node.operator == "+" && left._type == "String" && right._type != "String") {
+                    this.error = f("Cannot concatenate %s to String %s... on line %d", right._type, left.value.substring(0, 5), node.lineNo);
+                } else if (left !== right) {
+                    this.error = f("Cannot perform mathematical operation '%s' with types %s and %s on line %d (Expected)", node.operator, left._type, right._type, node.lineNo);
+                }
+            }
         break;
     }
 
