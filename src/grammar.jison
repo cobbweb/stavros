@@ -6,9 +6,9 @@
 %%
 
 program
-    : 'EOF'
+    : EOF
         {  }
-    | body 'EOF'
+    | body EOF
         { return $1; }
     ;
 
@@ -23,7 +23,7 @@ body
 
 line
     : PRINT expr
-        { $$ = new yy.Print($2); }
+        { $$ = new yy.Print($2); $$.lineNo = yylineno; }
     | classdef
         { $$ = $1; }
     | assignment
@@ -36,20 +36,20 @@ line
 
 ifblocks
     : IF '(' expr ')' block
-        { $$ = new yy.IfBlock($3, $5); }
+        { $$ = new yy.IfBlock($3, $5); $$.lineNo = yylineno; }
     | IF '(' expr ')' block ELSE block
-        { $$ = new yy.IfBlock($3, $5, $7); }
+        { $$ = new yy.IfBlock($3, $5, $7); $$.lineNo = yylineno; }
     | IF '(' expr ')' block elseifs
-        { $$ = new yy.IfBlock($3, $5, false, $6) }
+        { $$ = new yy.IfBlock($3, $5, false, $6); $$.lineNo = yylineno; }
     | IF '(' expr ')' block elseifs ELSE block
-        { $$ = new yy.IfBlock($3, $5, $8, $6) }
+        { $$ = new yy.IfBlock($3, $5, $8, $6); $$.lineNo = yylineno; }
     ;
 
 elseifs
     : ELSE IF '(' expr ')' block
-        { $$ = [new yy.ElseIfBlock($4, $6)]; }
+        { $$ = [new yy.ElseIfBlock($4, $6)]; $$.lineNo = yylineno; }
     | elseifs ELSE IF '(' expr ')' block
-        { $$ = $1; $1.push(new yy.ElseIfBlock($5, $7)); }
+        { $$ = $1; $1.push(new yy.ElseIfBlock($5, $7)); $$.lineNo = yylineno; }
     ;
 
 block
@@ -70,13 +70,13 @@ assignment
 
 expr
     : '(' expr ')'
-        { $$ = new yy.BracketBlock($2); }
+        { $$ = new yy.BracketBlock($2); $$.lineNo = yylineno; }
     | expr MATH expr
-        { $$ = new yy.Math($1, $3, $2); }
+        { $$ = new yy.Math($1, $3, $2); $$.lineNo = yylineno; }
     | expr COMPARE expr
-        { $$ = new yy.Comparison($1, $3, $2); }
+        { $$ = new yy.Comparison($1, $3, $2); $$.lineNo = yylineno; }
     | expr BOOLOP expr
-        { $$ = new yy.Comparison($1, $3, $2); }
+        { $$ = new yy.Comparison($1, $3, $2); $$.lineNo = yylineno; }
     | closure
         { $$ = $1; }
     | variablecall
@@ -94,11 +94,11 @@ parameters
 
 parameter
     : IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.ValueParameter($1, $3); }
+        { $$ = new yy.ValueParameter($1, $3); $$.lineNo = yylineno; }
     | VAL IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.ValueParameter($2, $4); }
+        { $$ = new yy.ValueParameter($2, $4); $$.lineNo = yylineno; }
     | VAR IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.VariableParameter($2, $4); }
+        { $$ = new yy.VariableParameter($2, $4); $$.lineNo = yylineno; }
     ;
 
 arguments
@@ -109,10 +109,10 @@ arguments
     ;
 
 closure
-    : FUN '('')' block
-        { $$ = new yy.Closure($4); }
-    | FUN '(' parameters ')' block
-        { $$ = new yy.Closure($5, $3); }
+    : FUN '('')'':' IDENTIFIER block
+        { $$ = new yy.Closure($6, $5); $$.lineNo = yylineno; }
+    | FUN '(' parameters ')' ':' IDENTIFIER block
+        { $$ = new yy.Closure($7, $3, $6); $$.lineNo = yylineno; }
     ;
 
 classdef
@@ -136,9 +136,9 @@ classline
 
 method
     : PUBLIC FUN IDENTIFIER '(' ')' block
-        { $$ = new yy.Method($1, $3, $6); }
+        { $$ = new yy.Method($1, $3, $6); $$.lineNo = yylineno; }
     | PUBLIC FUN IDENTIFIER '(' parameters ')' block
-        { $$ = new yy.Method($1, $3, $7, $5); }
+        { $$ = new yy.Method($1, $3, $7, $5); $$.lineNo = yylineno; }
     ;
 
 variablecall
@@ -152,7 +152,7 @@ variablecall
 
 type
     : INT
-        { $$ = new yy.Integer($1); }
+        { $$ = new yy.Integer($1); $$.lineNo = yylineno; }
     | STRING
-        { $$ = new yy.String($1); }
+        { $$ = new yy.String($1); $$.lineNo = yylineno; }
     ;

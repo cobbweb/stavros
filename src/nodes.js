@@ -74,10 +74,11 @@ var Nodes = {
         this.trueBlock = trueBlock;
     },
 
-    Closure: function(body, parameters) {
+    Closure: function(body, parameters, returnType) {
         this._type = "Closure";
         this.body = body;
         this.parameters = parameters;
+        this.returnType = returnType;
     },
 
     VariableParameter: function(name, type) {
