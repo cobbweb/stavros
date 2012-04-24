@@ -5,7 +5,8 @@ var parser       = require('./parser').parser,
     rewriter     = require('./rewriter'),
     path         = require('path'),
     astValidator = require('./ast-validator'),
-    jsCompiler   = require('./js-compiler');
+    jsCompiler   = require('./js-compiler'),
+    util         = require('util');
 
 parser.yy = nodes;
 
@@ -15,7 +16,7 @@ parser.lexer = {
     {
         var token = this.tokens[this.pos] ? this.tokens[this.pos++] : ['EOF'];
         this.yytext = token[1];
-        this.yylineno = token[2];
+        this.yylineno = token[2] + 1;
         return token[0];
     },
 
