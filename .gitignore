@@ -1,4 +1,3 @@
 src/parser.js
 node_modules/
-calc.js
-src/_nodes.js
+demo.js
