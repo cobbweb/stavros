@@ -1,4 +1,4 @@
-/* description: Calculator with variables */
+/* description: I like kill bats and mice, and have cute eyes. */
 
 %left 'MATH' 'COMPARE' 'BOOLOP'
 
@@ -18,20 +18,15 @@ body
     | body TERMINATOR line
         { $$ = $1; $1.push($3); }
     | body TERMINATOR
-        { $$ = $1; }
     ;
 
 line
     : PRINT expr
         { $$ = new yy.Print($2); $$.lineNo = yylineno; }
     | classdef
-        { $$ = $1; }
     | assignment
-        { $$ = $1; }
     | ifblocks
-        { $$ = $1; }
     | expr
-        { $$ = $1; }
     ;
 
 ifblocks
@@ -78,11 +73,8 @@ expr
     | expr BOOLOP expr
         { $$ = new yy.Comparison($1, $3, $2); $$.lineNo = yylineno; }
     | closure
-        { $$ = $1; }
     | variablecall
-        { $$ = $1; }
     | type
-        { $$ = $1; }
     ;
 
 parameters
@@ -126,12 +118,10 @@ classbody
     | classbody TERMINATOR classline
         { $$ = $1; $1.push($3); }
     | classbody TERMINATOR
-        { $$ = $1; }
     ;
 
 classline
     : method
-        { $$ = $1; }
     ;
 
 method
