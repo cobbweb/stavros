@@ -1,0 +1,1 @@
+var AstValidator = require('../src/ast-validator');
