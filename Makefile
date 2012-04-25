@@ -5,7 +5,10 @@ deps:
 	npm install
 	npm prune
 
-# Tests
+# Demo
+demo: all
+	bin/stavros examples/demo.stav
+	node demo.js
+
 test: all
-	bin/stavros examples/calc.stav
-	node calc.js
+	nodeunit tests/lexer.js
