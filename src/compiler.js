@@ -16,7 +16,7 @@ parser.lexer = {
     {
         var token = this.tokens[this.pos] ? this.tokens[this.pos++] : ['EOF'];
         this.yytext = token[1];
-        this.yylineno = token[2] + 1;
+        this.yylineno = token[2];
         return token[0];
     },
 
