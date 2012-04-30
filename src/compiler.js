@@ -33,6 +33,16 @@ parser.lexer = {
 
 };
 
+parser._performAction = parser.performAction;
+parser.performAction = function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_$) {
+    var ret = parser._performAction.call(this, yytext, yyleng, yylineno, yy, yystate, $$, _$);
+    // do stuff
+    if (this.$._type) {
+        this.$.lineNo = yylineno;
+    }
+    return ret;
+};
+
 exports.compile = function(code) {
     var tokens = lexer.tokenise(code);
     tokens = rewriter.rewrite(tokens);
