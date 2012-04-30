@@ -161,7 +161,7 @@ AstValidator.prototype.validateNode = function(node) {
 
                 if (node.operator == "+" && left._type == "String" && right._type != "String") {
                     this.error = f("Cannot concatenate %s to String %s... on line %d", right._type, left.value.substring(0, 5), node.lineNo);
-                } else if (left !== right) {
+                } else if (left._type !== right._type) {
                     this.error = f("Cannot perform mathematical operation '%s' with types %s and %s on line %d (Expected)", node.operator, left._type, right._type, node.lineNo);
                 }
             }
