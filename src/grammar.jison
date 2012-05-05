@@ -73,6 +73,7 @@ expr
     | expr BOOLOP expr
         { $$ = new yy.Comparison($1, $3, $2); }
     | closure
+    | instantiation
     | variablecall
     | type
     ;
@@ -125,19 +126,31 @@ classline
     ;
 
 method
-    : PUBLIC FUN IDENTIFIER '(' ')' block
-        { $$ = new yy.Method($1, $3, $6); }
-    | PUBLIC FUN IDENTIFIER '(' parameters ')' block
-        { $$ = new yy.Method($1, $3, $7, $5); }
+    : PUBLIC FUN IDENTIFIER '('')'':' IDENTIFIER block
+        { $$ = new yy.Method($1, $3, $8); }
+    | PUBLIC FUN IDENTIFIER '(' parameters ')' ':' IDENTIFIER block
+        { $$ = new yy.Method($1, $3, $9, $5); }
+    ;
+
+instantiation
+    : NEW IDENTIFIER '('')'
+        { $$ = new yy.ClassInstantiation($2); }
     ;
 
 variablecall
-    : IDENTIFIER '('')'
+    : objectref '('')'
         { $$ = new yy.CallFunction($1); }
-    | IDENTIFIER '(' arguments ')'
+    | objectref '(' arguments ')'
         { $$ = new yy.CallFunction($1, $3); }
-    | IDENTIFIER
+    | objectref
         { $$ = new yy.CallVariable($1); }
+    ;
+
+objectref
+    : IDENTIFIER
+        { $$ = [$1]; }
+    |   objectref '.' IDENTIFIER
+        { $$ = $1; $$.push($3); }
     ;
 
 type

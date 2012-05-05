@@ -14,7 +14,7 @@ ScopeManager.prototype = {
 
     createScope: function(name)
     {
-        var scope = this.currentScope.pushScope(name);
+        var scope = this.currentScope.pushScope(name, this.currentScope);
 
         if (!scope) {
             console.log("Scope conlict: Cannot define identifier %s in scope %s", name, this.currentScope.name);

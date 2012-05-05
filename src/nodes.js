@@ -96,7 +96,7 @@ var Nodes = {
     CallFunction: function(name, args) {
         this._type = "CallFunction";
         this.name = name;
-        this.args = args;
+        this.args = args || [];
     },
 
     Class: function(name, body) {
@@ -111,8 +111,13 @@ var Nodes = {
         this.name = name;
         this.body = body;
         this.parameters = parameters;
-    }
+    },
 
+    ClassInstantiation: function(name, args) {
+        this._type = "ClassInstantiation";
+        this.name = name;
+        this.args = args || [];
+    }
 };
 
 module.exports = Nodes;

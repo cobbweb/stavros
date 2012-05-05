@@ -22,7 +22,7 @@ AstValidator.prototype.validate = function(ast) {
     return true;
 };
 
-/** This function will search down and AST to find what type of node is at the bottom left */
+/** Search down an Expr AST to find what type of node is at the bottom left */
 AstValidator.prototype.inferExpressionType = function(node) {
     var i = this.inferExpressionType;
     var type = {};
@@ -48,15 +48,28 @@ AstValidator.prototype.inferExpressionType = function(node) {
         case "String":
             type = node;
         break;
+
+        case "ClassInstantiation":
+            type = node.name;
+        break;
     }
 
     return type;
 };
 
+AstValidator.prototype.validateObjectReference = function(name) {
+    if (_.isArray(name)) {
+        name = name[0];
+    }
+    var node = this.scopeManager.getIdentifier(name);
+    return node;
+};
+
 AstValidator.prototype.validateNode = function(node) {
+    var identifier;
     switch (node._type) {
         case "AssignVariable":
-            var identifier = this.scopeManager.getIdentifier(node.name);
+            identifier = this.scopeManager.getIdentifier(node.name);
 
             if (identifier) {
                 if (identifier._type == "AssignValue" || identifier._type == "ValueParameter") {
@@ -77,24 +90,22 @@ AstValidator.prototype.validateNode = function(node) {
                 this.scopeManager.pushIdentifier(node.name, node);
                 this.validateNode(node.expr);
                 node._inferredType = this.inferExpressionType(node.expr);
-                console.log(node._inferredType);
             }
         break;
 
         case "SetVariable":
-            var identifier = this.scopeManager.getIdentifier(node.name);
+            identifier = this.scopeManager.getIdentifier(node.name);
 
             if (identifier && (identifier._type == "AssignValue" || identifier._type == "ValueParameter")) {
                 this.error = f("Cannot change value %s on line %d", node.name, node.lineNo);
             } else {
                 this.validateNode(node.expr);
                 node._inferredType = this.inferExpressionType(node.expr);
-                console.log(node._inferredType);
             }
         break;
 
         case "CallVariable":
-            if (!this.scopeManager.hasIdentifier(node.name)) {
+            if (!this.scopeManager.hasIdentifier(node.name[0])) {
                 this.error = f("Call to undefined variable %s on line %d", node.name, node.lineNo);
             }
         break;
@@ -121,12 +132,16 @@ AstValidator.prototype.validateNode = function(node) {
         break;
 
         case "CallFunction":
-            var identifier = this.scopeManager.getIdentifier(node.name);
+            if (this.validateObjectReference(node.name)) {
 
-            if (!identifier) {
-                this.error = f("Call to undefined function %s on line %d", node.name, node.lineNo);
-            } else if (identifier.expr._type !== "Closure") {
-                this.error = f("Cannot call %s as a function or closure on line %d", node.name, node.lineNo);
+            } else {
+                identifier = this.scopeManager.getIdentifier(node.name[0]);
+
+                if (!identifier) {
+                    this.error = f("Call to undefined function %s on line %d", node.name, node.lineNo);
+                } else if (identifier.expr._type !== "Closure") {
+                    this.error = f("Cannot call %s as a function or closure on line %d", node.name, node.lineNo);
+                }
             }
         break;
 
@@ -136,11 +151,22 @@ AstValidator.prototype.validateNode = function(node) {
         break;
 
         case "Class":
-            this.scopeManager.createScope(node.name);
+            identifier = this.scopeManager.getIdentifier(node.name);
 
-            _.find(node.body, this.validateNode);
+            if (identifier && identifier._type == "Class") {
+                this.error = f("Cannot redefine class %s on line %d", node.name, node.lineNo);
+            } else if (this.scopeManager.currentScope.name != "__GLOBAL__") {
+                this.error = f("Y U define class %s out of global scope on line %d?", node.name, node.lineNo);
+            } else {
+                this.scopeManager.pushIdentifier(node.name, node);
+                this.scopeManager.createScope(node.name);
+                _.find(node.body, this.validateNode);
+                this.scopeManager.exitScope();
+            }
+        break;
 
-            this.scopeManager.exitScope();
+        case "ClassInstantiation":
+
         break;
 
         case "Comparison":

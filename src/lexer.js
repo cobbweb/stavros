@@ -1,5 +1,7 @@
 /*!
  Stavros lexer
+
+ TODO: So much similar code in this file, there must be a way to refactor this
 */
 
 var _ = require('underscore');
@@ -9,7 +11,9 @@ var INT        = /^[0-9]+/,
     WHITESPACE = /^[^\n\S]+/,
     KEYWORD    = /^([a-z]+)/ig,
     IDENTIFIER = /^((\$|[a-z])([a-z0-9_$])*)/ig,
-    TERMINATOR = /^(\n|;)/;
+    TERMINATOR = /^(\n|;)/,
+    MULTILINE_COMMENT = /^\/\*([^*]|[\r\n]|(\*+([^*\/]|[\r\n])))*\*+\//gm,
+    SINGLELINE_COMMENT = /^((\/\/|#)).*$/;
 
 var KEYWORDS = [
     // values
@@ -24,7 +28,8 @@ var KEYWORDS = [
     // language
     "fun",
     "class",
-    "public"
+    "public",
+    "new"
 ];
 
 var SYNTAX = [
@@ -86,7 +91,6 @@ Lexer.prototype = {
     tokenise: function(code) {
         this.lineNo = 0;
         var chunk, tokens = [], i = 0, token;
-        code = code.replace(/(\n|\r)+$/, '');
 
         while (i < code.length) {
             chunk = code.substring(i);
@@ -95,6 +99,14 @@ Lexer.prototype = {
             token = this.whitespace(chunk);
             if (token.length === 2) {
                 i += token[1].length;
+
+                continue;
+            }
+
+            token = this.comments(chunk);
+            if (token.length == 2) {
+                i += token[1].length;
+                this.lineNo = token[1].split("\n").length - 1;
                 continue;
             }
 
@@ -179,12 +191,28 @@ Lexer.prototype = {
     {
         var token = [];
 
-        _.each(SYNTAX, function(syntax) {
+        _.find(SYNTAX, function(syntax) {
             if (chunk.indexOf(syntax) === 0) {
                 token = [syntax, syntax];
-                return;
+                return true;
             }
         }, this);
+
+        return token;
+    },
+
+    comments: function(chunk)
+    {
+        var token = [];
+
+        _.find([SINGLELINE_COMMENT, MULTILINE_COMMENT], function(regex) {
+            if (chunk.search(regex) === 0) {
+                var result = chunk.match(regex)[0];
+
+                token = ["COMMENT", result];
+                return true;
+            }
+        });
 
         return token;
     },

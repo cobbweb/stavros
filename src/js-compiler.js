@@ -53,7 +53,7 @@ JsCompiler.prototype.compileNode = function(node) {
         case "VariableParameter":
         case "ValueParameter":
         case "CallVariable":
-            code = node.name;
+            code = node.name.join('.');
         break;
 
         case "Comparison":
@@ -103,7 +103,7 @@ JsCompiler.prototype.compileNode = function(node) {
                 }, this);
             }
 
-            code = f("%s(%s);", node.name, args.join(", "));
+            code = f("%s(%s);", node.name.join('.'), args.join(", "));
         break;
 
         case "Class":
@@ -134,6 +134,10 @@ JsCompiler.prototype.compileNode = function(node) {
             });
 
             code = f("%s.prototype.%s = function(%s) {\n%s\n};", currentClass, node.name, params.join("\n"), body.join("\n"));
+        break;
+
+        case "ClassInstantiation":
+            code = f("new %s()", node.name);
         break;
     }
 

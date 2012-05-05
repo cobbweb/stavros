@@ -1,0 +1,8 @@
+class Yoyo {
+    public fun talk(): void {
+        print "Yo! Yo!"
+    }
+}
+
+val yoyo = new Yoyo()
+yoyo.talk()
