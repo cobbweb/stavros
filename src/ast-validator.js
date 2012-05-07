@@ -41,12 +41,15 @@ AstValidator.prototype.inferExpressionType = function(node) {
             type = node.returnType;
         break;
 
-        case "VariableCall":
+        case "CallValue":
+        case "CallVariable":
+            var identifier = this.scopeManager.getIdentifier(node.name);
+            type = identifier._inferredType;
         break;
 
         case "Integer":
         case "String":
-            type = node;
+            type = node._type;
         break;
 
         case "ClassInstantiation":
@@ -201,6 +204,7 @@ AstValidator.prototype.validateNode = function(node) {
     return false;
 };
 
+exports.AstValidator = AstValidator;
 exports.validate = function(ast) {
     var validator = new AstValidator();
     return validator.validate(ast);
