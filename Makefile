@@ -6,7 +6,7 @@ deps:
 	npm prune
 
 # Demo
-demo: all
+demo: all test
 	bin/stavros examples/demo.stav
 	node demo.js
 
