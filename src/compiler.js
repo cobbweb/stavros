@@ -42,6 +42,8 @@ parser.performAction = function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_
     return ret;
 };
 
+exports.parser = parser;
+
 exports.compile = function(code) {
     var tokens = lexer.tokenise(code);
     tokens = rewriter.rewrite(tokens);

@@ -11,4 +11,4 @@ demo: all test
 	node demo.js
 
 test: all
-	nodeunit tests/lexer.js
+	nodeunit tests/
