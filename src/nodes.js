@@ -95,7 +95,7 @@ var Nodes = {
 
     CallFunction: function(name, args) {
         this._type = "CallFunction";
-        this.name = name;
+        this.name = [name];
         this.args = args || [];
     },
 
