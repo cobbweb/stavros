@@ -23,6 +23,27 @@ var tokens = {
         [ 'ASSIGN', '=', 0 ],
         [ 'STRING', '"test"', 0 ],
         [ 'EOF', '', 0 ]
+    ],
+
+    "closure assignment": [
+        [ 'VAR', 'var', 0 ],
+        [ 'IDENTIFIER', 'yoyo', 0 ],
+        [ 'ASSIGN', '=', 0 ],
+        [ 'FUN', 'fun', 0 ],
+        [ '(', '(', 0 ],
+        [ 'VAR', 'var', 0 ],
+        [ 'IDENTIFIER', 'name', 0 ],
+        [ ':', ':', 0 ],
+        [ 'IDENTIFIER', 'String', 0 ],
+        [ ')', ')', 0 ],
+        [ ':', ':', 0 ],
+        [ 'IDENTIFIER', 'Void', 0 ],
+        [ '{', '{', 0 ],
+        [ 'PRINT', 'print', 1 ],
+        [ 'IDENTIFIER', 'name', 1 ],
+        [ 'TERMINATOR', '\n', 1 ],
+        [ '}', '}', 2 ],
+        [ 'EOF', '', 2 ]
     ]
 };
 
@@ -67,5 +88,21 @@ module.exports = {
         test.equal(node.assignType, "=");
 
         test.done();
+    },
+
+    "Test closure assignment": function(test) {
+        test.expect(5);
+        var ast = parser.parse(tokens["closure assignment"]);
+        var node = ast[0];
+        var closure = node.expr;
+
+        test.equal(node._type, "AssignVariable");
+        test.equal(node.name, "yoyo");
+        test.equal(closure._type, "Closure");
+        test.equal(closure.returnType, "Void");
+        test.equal(closure.parameters.length, 1);
+
+        test.done();
+    },
     }
 };
