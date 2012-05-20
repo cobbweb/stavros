@@ -25,10 +25,7 @@ var tokens = {
         [ 'EOF', '', 0 ]
     ],
 
-    "closure assignment": [
-        [ 'VAR', 'var', 0 ],
-        [ 'IDENTIFIER', 'yoyo', 0 ],
-        [ 'ASSIGN', '=', 0 ],
+    "closure creation": [
         [ 'FUN', 'fun', 0 ],
         [ '(', '(', 0 ],
         [ 'VAR', 'var', 0 ],
@@ -91,13 +88,11 @@ module.exports = {
     },
 
     "Test closure assignment": function(test) {
-        test.expect(5);
-        var ast = parser.parse(tokens["closure assignment"]);
-        var node = ast[0];
-        var closure = node.expr;
+        test.expect(3);
 
-        test.equal(node._type, "AssignVariable");
-        test.equal(node.name, "yoyo");
+        var ast = parser.parse(tokens["closure creation"]);
+        var closure = ast[0];
+
         test.equal(closure._type, "Closure");
         test.equal(closure.returnType, "Void");
         test.equal(closure.parameters.length, 1);
