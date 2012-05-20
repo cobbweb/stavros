@@ -52,7 +52,13 @@ JsCompiler.prototype.compileNode = function(node) {
 
         case "VariableParameter":
         case "ValueParameter":
+            code = node.name;
+        break;
+
         case "CallVariable":
+            if (!node.name.join) {
+                console.log(node);
+            }
             code = node.name.join('.');
         break;
 
