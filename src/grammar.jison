@@ -158,4 +158,6 @@ type
         { $$ = new yy.Integer($1); }
     | STRING
         { $$ = new yy.String($1); }
+    | BOOLEAN
+        { $$ = new yy.Boolean($1); }
     ;

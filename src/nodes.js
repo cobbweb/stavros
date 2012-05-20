@@ -117,6 +117,11 @@ var Nodes = {
         this._type = "ClassInstantiation";
         this.name = name;
         this.args = args || [];
+    },
+
+    Boolean: function(value) {
+        this._type = "Boolean";
+        this.value = value;
     }
 };
 

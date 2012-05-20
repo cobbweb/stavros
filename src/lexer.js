@@ -62,6 +62,11 @@ var LITERALS = {
         '&&'
     ],
 
+    BOOLEAN: [
+        "true",
+        "false"
+    ],
+
      ASSIGN: [
     //     "+=",
     //     "-=",
@@ -110,6 +115,15 @@ Lexer.prototype = {
                 continue;
             }
 
+            // Test for literal
+            token = this.literals(chunk);
+            if (token.length === 2) {
+                i += token[1].length;
+                token[2] = this.lineNo;
+                tokens.push(token);
+                continue;
+            }
+
             // Test for keyword
             token = this.keyword(chunk);
             if (token.length === 2) {
@@ -144,15 +158,6 @@ Lexer.prototype = {
 
             // Test for syntax
             token = this.syntax(chunk);
-            if (token.length === 2) {
-                i += token[1].length;
-                token[2] = this.lineNo;
-                tokens.push(token);
-                continue;
-            }
-
-            // Test for literal
-            token = this.literals(chunk);
             if (token.length === 2) {
                 i += token[1].length;
                 token[2] = this.lineNo;

@@ -104,5 +104,29 @@ module.exports = {
 
         test.done();
     },
+
+    "Test boolean true as an expression": function(test) {
+        test.expect();
+
+        var ast = parser.parse([[ "BOOLEAN", "true", 0 ], [ "EOF", "", 0 ]]);
+        var node = ast[0];
+
+        test.equal(node._type, "Boolean", "Is boolean");
+        test.equal(node.value, "true", "Is true");
+
+        test.done();
+    },
+
+    "Test boolean true as an expression": function(test) {
+        test.expect();
+
+        var ast = parser.parse([[ "BOOLEAN", "false", 0 ], [ "EOF", "", 0 ]]);
+        var node = ast[0];
+
+        test.equal(node._type, "Boolean", "Is boolean");
+        test.equal(node.value, "false", "Is false");
+
+        test.done();
     }
+
 };

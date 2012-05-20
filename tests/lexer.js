@@ -128,6 +128,26 @@ module.exports = {
 
         test.deepEqual(Lexer.tokenise(code), expect, 'Mmmmmath');
         test.done();
+    },
+
+    'Test boolean true': function(test) {
+        test.expect(1);
+
+        var code = "true";
+        var expect = ["BOOLEAN", "true", 0];
+
+        test.deepEqual(Lexer.tokenise(code)[0], expect);
+        test.done();
+    },
+
+    'Test boolean false': function(test) {
+        test.expect(1);
+
+        var code = "false";
+        var expect = ["BOOLEAN", "false", 0];
+
+        test.deepEqual(Lexer.tokenise(code)[0], expect);
+        test.done();
     }
 
 };
