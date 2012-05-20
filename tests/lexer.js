@@ -1,4 +1,4 @@
-var Lexer = require('../src/lexer'),
+var Lexer = require('../src-cov/lexer'),
     assert = require('assert');
 
 module.exports = {

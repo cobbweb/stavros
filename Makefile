@@ -11,4 +11,6 @@ demo: all test
 	node demo.js
 
 test: all
+	rm -rf src-cov
+	jscoverage src src-cov
 	nodeunit tests/

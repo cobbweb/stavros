@@ -1,4 +1,4 @@
-var parser = require('../src/compiler').parser,
+var parser = require('../src-cov/compiler').parser,
     assert = require('assert');
 
 

@@ -1,3 +1,3 @@
-var AstValidator = require('../src/ast-validator');
+var AstValidator = require('../src-cov/ast-validator');
 
 module.exports = {};
