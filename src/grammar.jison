@@ -161,3 +161,14 @@ type
     | BOOLEAN
         { $$ = new yy.Boolean($1); }
     ;
+
+    %%
+
+parser._performAction = parser.performAction;
+parser.performAction = function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_$) {
+    var ret = parser._performAction.call(this, yytext, yyleng, yylineno, yy, yystate, $$, _$);
+    if (this.$._type) {
+        this.$.lineNo = yylineno;
+    }
+    return ret;
+};
