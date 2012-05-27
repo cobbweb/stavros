@@ -1,6 +1,16 @@
 var _    = require('underscore'),
     util = require('util');
 
+var stringReduce = function(list, iterator, context) {
+    var string = "";
+
+    _.each(list, function(i) {
+        string += iterator(i);
+    }, context);
+
+    return string;
+};
+
 var f = util.format, currentClass;
 
 var JsCompiler = function() {
@@ -67,33 +77,23 @@ JsCompiler.prototype.compileNode = function(node) {
         break;
 
         case "IfBlock":
-            var trueBlock = "";
-
-            _.each(node.trueBlock, function(n) {
-                trueBlock += c(n)
-            });
+            var trueBlock = stringReduce(node.trueBlock, c);
 
             code = f("if (%s) {\n%s\n}", c(node.evaluation), trueBlock);
 
             if (node.elseIfs) {
-                _.each(node.elseIfs, function(n) {
-                    code += c(n);
-                }, this);
+                code += stringReduce(node.elseIfs, c);
             }
 
             if (node.falseBlock) {
-                var falseBlock = "";
-
-                _.each(node.falseBlock, function(n) {
-                    falseBlock += c(n);
-                });
+                var falseBlock = stringReduce(node.falseBlock, c);
 
                 code += f(" else {\n%s\n}", falseBlock);
             }
         break;
 
         case "ElseIfBlock":
-            code = f(" else if (%s) {\n%s\n}", node.evaluation, node.trueBlock);
+            code = f(" else if (%s) {\n%s\n}", c(node.evaluation), stringReduce(node.trueBlock, c));
         break;
 
         case "Closure":
@@ -156,6 +156,10 @@ JsCompiler.prototype.compileNode = function(node) {
 
         case "ClassInstantiation":
             code = f("new %s()", node.name);
+        break;
+
+        case "Boolean":
+            code = node.value;
         break;
     }
 
