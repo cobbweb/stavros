@@ -1,56 +1,15 @@
-var name = "Stavros!"
-sayHello = fun (var name: String) {
-    console.log("Hello ${name}")
-}
+class Steve {
 
-sayHello(name)
-
-name = "Hans Brix"
-sayHello(name)
-
-sayHello = "Hello World!" // error, immutable... use var keyword
-
-class Hello(var name?) {
-
-    fun talk()
-    {
-        console.log("Hello ${@name}")
+    public fun talk(message: String) {
+        console.log("Steve says: " + message)
     }
 
-    fun whosTalking()
-
-}
-
-class Stavros extends Hello {
-    // class body is constructor
-    @name = "Starvos"
-
-
-    fun haveFun(func: Function)
-    {
-        val result = func()
-        console.log("${@name} says: result")
+    public fun doMath(left: Number, right: Number): Number {
+        this.talk(left.toString() + " + " + right.toString())
+        ret left + right
     }
-}
-
-hello = new Hello("World!")
-hello.talk()
-
-stavros = new Stavros()
-stavros.talk()
-stavros.haveFun(fun() {
-    // implicit return
-    "Meow"
-})
-
-// ------- MyView.stav
-
-namespace MyApp.View
-
-import Backbone._
-
-class MyView extend Backbone.View {
-
-    @$el = "#sidebar"
 
 }
+
+val steve = new Steve()
+steve.talk("What's up?")
