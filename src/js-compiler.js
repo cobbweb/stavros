@@ -82,7 +82,13 @@ JsCompiler.prototype.compileNode = function(node) {
             }
 
             if (node.falseBlock) {
-                code += f(" else {\n%s\n}", c(node.falseBlock));
+                var falseBlock = "";
+
+                _.each(node.falseBlock, function(n) {
+                    falseBlock += c(n);
+                });
+
+                code += f(" else {\n%s\n}", falseBlock);
             }
         break;
 
