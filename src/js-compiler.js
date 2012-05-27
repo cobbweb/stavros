@@ -67,11 +67,17 @@ JsCompiler.prototype.compileNode = function(node) {
         break;
 
         case "IfBlock":
-            code = f("if (%s) {\n%s\n}", c(node.evaluation), c(node.trueBlock));
+            var trueBlock = "";
+
+            _.each(node.trueBlock, function(n) {
+                trueBlock += c(n)
+            });
+
+            code = f("if (%s) {\n%s\n}", c(node.evaluation), trueBlock);
 
             if (node.elseIfs) {
-                _.each(node.elseIfs, function(node) {
-                    code += c(node);
+                _.each(node.elseIfs, function(n) {
+                    code += c(n);
                 }, this);
             }
 
