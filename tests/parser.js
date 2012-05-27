@@ -41,6 +41,38 @@ var tokens = {
         [ 'TERMINATOR', '\n', 1 ],
         [ '}', '}', 2 ],
         [ 'EOF', '', 2 ]
+    ],
+
+    "if block": [
+        [ 'IF', 'if', 0 ],
+        [ '(', '(', 0 ],
+        [ 'BOOLEAN', 'true', 0 ],
+        [ ')', ')', 0 ],
+        [ '{', '{', 0 ],
+        [ 'PRINT', 'print', 1 ],
+        [ 'STRING', '"test"', 1 ],
+        [ 'TERMINATOR', '\n', 1 ],
+        [ '}', '}', 2 ],
+        [ 'EOF', '', 2 ]
+    ],
+
+    "if else block": [
+        [ 'IF', 'if', 0 ],
+        [ '(', '(', 0 ],
+        [ 'BOOLEAN', 'true', 0 ],
+        [ ')', ')', 0 ],
+        [ '{', '{', 0 ],
+        [ 'PRINT', 'print', 1 ],
+        [ 'STRING', '"test"', 1 ],
+        [ 'TERMINATOR', '\n', 1 ],
+        [ '}', '}', 2 ],
+        [ 'ELSE', 'else', 2 ],
+        [ '{', '{', 2 ],
+        [ 'PRINT', 'print', 3 ],
+        [ 'STRING', '"false"', 3 ],
+        [ 'TERMINATOR', '\n', 3 ],
+        [ '}', '}', 4 ],
+        [ 'EOF', '', 4 ]
     ]
 };
 
@@ -101,7 +133,7 @@ module.exports = {
     },
 
     "Test boolean true as an expression": function(test) {
-        test.expect();
+        test.expect(2);
 
         var ast = parser.parse([[ "BOOLEAN", "true", 0 ], [ "EOF", "", 0 ]]);
         var node = ast[0];
@@ -113,13 +145,44 @@ module.exports = {
     },
 
     "Test boolean true as an expression": function(test) {
-        test.expect();
+        test.expect(2);
 
         var ast = parser.parse([[ "BOOLEAN", "false", 0 ], [ "EOF", "", 0 ]]);
         var node = ast[0];
 
         test.equal(node._type, "Boolean", "Is boolean");
         test.equal(node.value, "false", "Is false");
+
+        test.done();
+    },
+
+    "Test If block": function(test) {
+        test.expect(2);
+
+        var ast = parser.parse(tokens["if block"]);
+        var node = ast[0];
+
+        test.equal(node._type, "IfBlock");
+        test.equal(node.trueBlock[0]._type, "Print");
+
+        test.done();
+    },
+
+    "Test If Else Blocks": function(test) {
+        test.expect(5);
+
+        var ast = parser.parse(tokens["if else block"]);
+        var node = ast[0];
+        var trueBlock = node.trueBlock;
+        var falseBlock = node.falseBlock;
+
+        test.equal(node._type, "IfBlock");
+
+        test.equal(trueBlock[0]._type, "Print");
+        test.equal(trueBlock[0].expr.value, '"test"');
+
+        test.equal(falseBlock[0]._type, "Print");
+        test.equal(falseBlock[0].expr.value, '"false"');
 
         test.done();
     }
