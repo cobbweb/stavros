@@ -20,6 +20,12 @@ var Nodes = {
         this.value = value;
     },
 
+    // [element, element, ...]
+    Array: function(elements) {
+        this._type = "Array";
+        this.elements = elements;
+    },
+
     // print expr
     Print: function(expr) {
         this._type = "Print";

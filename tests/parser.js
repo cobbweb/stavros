@@ -73,6 +73,17 @@ var tokens = {
         [ 'TERMINATOR', '\n', 3 ],
         [ '}', '}', 4 ],
         [ 'EOF', '', 4 ]
+    ],
+
+    "array": [
+        [ '[', '[', 0 ],
+        [ 'INT', '1', 0 ],
+        [ ',', ',', 0 ],
+        [ 'INT', '2', 0 ],
+        [ ',', ',', 0 ],
+        [ 'INT', '3', 0 ],
+        [ ']', ']', 0 ],
+        [ 'EOF', '', 0 ]
     ]
 };
 
@@ -168,7 +179,7 @@ module.exports = {
         test.done();
     },
 
-    "Test If Else Blocks": function(test) {
+    "Test If Else blocks": function(test) {
         test.expect(5);
 
         var ast = parser.parse(tokens["if else block"]);
@@ -183,6 +194,19 @@ module.exports = {
 
         test.equal(falseBlock[0]._type, "Print");
         test.equal(falseBlock[0].expr.value, '"false"');
+
+        test.done();
+    },
+
+    "Test array node": function(test) {
+        test.expect(3);
+
+        var ast = parser.parse(tokens["array"]);
+        var arrayNode = ast[0];
+
+        test.equal(arrayNode._type, "Array");
+        test.equal(arrayNode.elements.length, 3);
+        test.equal(arrayNode.elements[0]._type, "Integer");
 
         test.done();
     }

@@ -29,8 +29,7 @@ line
 
 ifblocks
     : IF '(' expr ')' block -> new yy.IfBlock($3, $5)
-    | IF '(' expr ')' block ELSE block
-        { $$ = new yy.IfBlock($3, $5, $7); }
+    | IF '(' expr ')' block ELSE block -> new yy.IfBlock($3, $5, $7)
     | IF '(' expr ')' block elseifs
         { $$ = new yy.IfBlock($3, $5, false, $6); }
     | IF '(' expr ')' block elseifs ELSE block
@@ -61,14 +60,10 @@ assignment
     ;
 
 expr
-    : '(' expr ')'
-        { $$ = new yy.BracketBlock($2); }
-    | expr MATH expr
-        { $$ = new yy.Math($1, $3, $2); }
-    | expr COMPARE expr
-        { $$ = new yy.Comparison($1, $3, $2); }
-    | expr BOOLOP expr
-        { $$ = new yy.Comparison($1, $3, $2); }
+    : '(' expr ')' -> new yy.BracketBlock($2)
+    | expr MATH expr -> new yy.Math($1, $3, $2)
+    | expr COMPARE expr -> new yy.Comparison($1, $3, $2)
+    | expr BOOLOP expr -> new yy.Comparison($1, $3, $2)
     | closure
     | instantiation
     | variablecall
@@ -83,12 +78,9 @@ parameters
     ;
 
 parameter
-    : IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.ValueParameter($1, $3); }
-    | VAL IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.ValueParameter($2, $4); }
-    | VAR IDENTIFIER ':' IDENTIFIER
-        { $$ = new yy.VariableParameter($2, $4); }
+    : IDENTIFIER ':' IDENTIFIER -> new yy.ValueParameter($1, $3)
+    | VAL IDENTIFIER ':' IDENTIFIER -> new yy.ValueParameter($2, $4)
+    | VAR IDENTIFIER ':' IDENTIFIER -> new yy.VariableParameter($2, $4)
     ;
 
 arguments
@@ -99,15 +91,12 @@ arguments
     ;
 
 closure
-    : FUN '('')'':' IDENTIFIER block
-        { $$ = new yy.Closure($6, $5); }
-    | FUN '(' parameters ')' ':' IDENTIFIER block
-        { $$ = new yy.Closure($7, $3, $6); }
+    : FUN '('')'':' IDENTIFIER block                -> new yy.Closure($6, $5)
+    | FUN '(' parameters ')' ':' IDENTIFIER block   -> new yy.Closure($7, $3, $6)
     ;
 
 classdef
-    : CLASS IDENTIFIER '{' classbody '}'
-        { $$ = new yy.Class($2, $4); }
+    : CLASS IDENTIFIER '{' classbody '}' -> new yy.Class($2, $4)
     ;
 
 classbody
@@ -123,24 +112,18 @@ classline
     ;
 
 method
-    : PUBLIC FUN IDENTIFIER '('')'':' IDENTIFIER block
-        { $$ = new yy.Method($1, $3, $8); }
-    | PUBLIC FUN IDENTIFIER '(' parameters ')' ':' IDENTIFIER block
-        { $$ = new yy.Method($1, $3, $9, $5); }
+    : PUBLIC FUN IDENTIFIER '('')'':' IDENTIFIER block              -> new yy.Method($1, $3, $8)
+    | PUBLIC FUN IDENTIFIER '(' parameters ')' ':' IDENTIFIER block -> new yy.Method($1, $3, $9, $5)
     ;
 
 instantiation
-    : NEW IDENTIFIER '('')'
-        { $$ = new yy.ClassInstantiation($2); }
+    : NEW IDENTIFIER '('')' -> new yy.ClassInstantiation($2)
     ;
 
 variablecall
-    : objectref '('')'
-        { $$ = new yy.CallFunction($1); }
-    | objectref '(' arguments ')'
-        { $$ = new yy.CallFunction($1, $3); }
-    | objectref
-        { $$ = new yy.CallVariable($1); }
+    : objectref '('')'              -> new yy.CallFunction($1)
+    | objectref '(' arguments ')'   -> new yy.CallFunction($1, $3)
+    | objectref                     -> new yy.CallVariable($1)
     ;
 
 objectref
@@ -151,15 +134,19 @@ objectref
     ;
 
 type
-    : INT
-        { $$ = new yy.Integer($1); }
-    | STRING
-        { $$ = new yy.String($1); }
-    | BOOLEAN
-        { $$ = new yy.Boolean($1); }
+    : INT               -> new yy.Integer($1)
+    | STRING            -> new yy.String($1)
+    | BOOLEAN           -> new yy.Boolean($1)
+    | '[' csv ']'       -> new yy.Array($csv)
     ;
 
-    %%
+csv
+    : expr -> [$expr]
+    | csv "," expr
+        { $csv.push($expr); $$ = $csv; }
+    ;
+
+%%
 
 parser._performAction = parser.performAction;
 parser.performAction = function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_$) {
