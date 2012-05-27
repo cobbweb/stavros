@@ -13,16 +13,14 @@ program
     ;
 
 body
-    : line
-        { $$ = [$1]; }
+    : line -> [$1]
     | body TERMINATOR line
         { $$ = $1; $1.push($3); }
     | body TERMINATOR
     ;
 
 line
-    : PRINT expr
-        { $$ = new yy.Print($2); }
+    : PRINT expr -> new yy.Print($2)
     | classdef
     | assignment
     | ifblocks
@@ -30,8 +28,7 @@ line
     ;
 
 ifblocks
-    : IF '(' expr ')' block
-        { $$ = new yy.IfBlock($3, $5); }
+    : IF '(' expr ')' block -> new yy.IfBlock($3, $5)
     | IF '(' expr ')' block ELSE block
         { $$ = new yy.IfBlock($3, $5, $7); }
     | IF '(' expr ')' block elseifs
